@@ -18,6 +18,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
@@ -41,6 +42,7 @@ public enum Backups
 	private int totalFiles = 0;
 	private String currentFileName = "";
 	public boolean hadPlayersOnline = false;
+	public final List<FilenameFilter> filters = new ArrayList<>();
 
 	public void init()
 	{
@@ -86,6 +88,10 @@ public enum Backups
 
 		FTBBackups.LOGGER.info("Backups folder - " + FTBBackupsConfig.general.getFolder().getAbsolutePath());
 		nextBackup = System.currentTimeMillis() + FTBBackupsConfig.general.time();
+		
+		for(String pattern : FTBBackupsConfig.general.ignored_patterns) {
+			filters.add(new PatternFilter(pattern));
+		}
 	}
 
 	public void tick(MinecraftServer server, long now)
@@ -269,7 +275,7 @@ public enum Backups
 
 			MinecraftForge.EVENT_BUS.post(new BackupEvent.Pre(consumer));
 
-			for (File file : BackupUtils.listTree(src))
+			for (File file : BackupUtils.listTree(src, filters))
 			{
 				String filePath = file.getAbsolutePath();
 				fileMap.put(file, src.getName() + File.separator + filePath.substring(src.getAbsolutePath().length() + 1));

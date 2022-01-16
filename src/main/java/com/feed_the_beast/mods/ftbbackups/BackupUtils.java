@@ -15,6 +15,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -183,15 +184,31 @@ public class BackupUtils
 		return file;
 	}
 
-	public static List<File> listTree(File file)
+	private static boolean shouldIgnore(List<FilenameFilter> filters, File file) {
+		for(FilenameFilter filter : filters) {
+			if(filter.accept(file.getParentFile(), file.getName())) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static List<File> listTree(File file, List<FilenameFilter> ignoreFilters)
 	{
 		List<File> l = new ArrayList<>();
-		listTree0(l, file);
+		listTree0(l, file, ignoreFilters);
 		return l;
 	}
+	public static List<File> listTree(File file) {
+		return listTree(file, null);
+	}
 
-	public static void listTree0(List<File> list, File file)
+	public static void listTree0(List<File> list, File file, List<FilenameFilter> ignoreFilters)
 	{
+		if(ignoreFilters != null && shouldIgnore(ignoreFilters, file)) {
+			FTBBackups.LOGGER.debug("Ignoring due to filters: " + file.getAbsolutePath());
+			return;
+		}
 		if (file.isDirectory())
 		{
 			File[] fl = file.listFiles();
@@ -200,7 +217,7 @@ public class BackupUtils
 			{
 				for (File aFl : fl)
 				{
-					listTree0(list, aFl);
+					listTree0(list, aFl, ignoreFilters);
 				}
 			}
 		}

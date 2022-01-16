@@ -60,6 +60,9 @@ public class FTBBackupsConfig
 
 		@Config.Comment("Add extra files that will be placed in backup _extra_/ folder.")
 		public String[] extra_files = { };
+		
+		@Config.Comment("Files matching a pattern specified will be omitted from backup.")
+		public String[] ignored_patterns = { };
 
 		@Config.Comment({
 				"Maximum total size that is allowed in backups folder. Older backups will be deleted to free space for newer ones.",
